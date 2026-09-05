@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bitcoin Business Club</title>
+  <meta name="description" content="Bitcoin Business Club — сообщество последователей, взломавших алгоритм." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0c;
+      --bg-card: #111116;
+      --fg: #f8f8fa;
+      --fg-muted: #7a7a95;
+      --border: #1e1e2a;
+      --primary: hsl(30,90%,58%);
+      --primary-dim: rgba(240,160,80,0.25);
+      --gold: hsl(45,90%,60%);
+      --display: 'Space Grotesk', sans-serif;
+      --sans: 'Inter', sans-serif;
+      --mono: Menlo, monospace;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--fg); line-height: 1.6; overflow-x: hidden; }
+
+    /* ── UTILS ── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .display { font-family: var(--display); }
+    .mono { font-family: var(--mono); }
+    .muted { color: var(--fg-muted); }
+    .primary { color: var(--primary); }
+    .grad {
+      background: linear-gradient(90deg,#f0a050 0%,#e8c040 55%,#f0a050 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+    @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+    .reveal { opacity:0; transform:translateY(24px); transition:opacity .6s ease,transform .6s ease; }
+    .reveal.d1 { transition-delay:.1s; }
+    .reveal.d2 { transition-delay:.2s; }
+    .reveal.d3 { transition-delay:.3s; }
+    .reveal.on { opacity:1; transform:translateY(0); }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top:0; left:0; right:0; z-index:100;
+      height:64px; border-bottom:1px solid var(--border);
+      background:rgba(10,10,12,.88); backdrop-filter:blur(12px);
+    }
+    nav .container { height:100%; display:flex; align-items:center; justify-content:space-between; }
+    .logo { display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--fg);
+      font-family:var(--display); font-weight:700; font-size:1.2rem; letter-spacing:-.02em; }
+    .logo-crown { color:var(--primary); }
+    .nav-links { display:flex; gap:32px; list-style:none; }
+    .nav-links a { color:var(--fg-muted); text-decoration:none; font-size:.875rem; font-weight:500; transition:color .2s; }
+    .nav-links a:hover { color:var(--fg); }
+    @media(max-width:768px){ .nav-links{display:none;} }
+
+    /* ── HERO ── */
+    .hero {
+      padding:180px 0 100px; border-bottom:1px solid var(--border); position:relative;
+      background-size:40px 40px;
+      background-image:linear-gradient(to right,rgba(255,255,255,.03) 1px,transparent 1px),
+                       linear-gradient(to bottom,rgba(255,255,255,.03) 1px,transparent 1px);
+    }
+    .hero::after { content:''; position:absolute; inset:0;
+      background:linear-gradient(to bottom,rgba(10,10,12,.1),rgba(10,10,12,.6),#0a0a0c);
+      pointer-events:none; }
+    .hero .container { position:relative; z-index:1; }
+    .hero-badge {
+      display:inline-flex; align-items:center; gap:8px; margin-bottom:24px;
+      padding:5px 12px; background:rgba(255,255,255,.05); border:1px solid var(--border);
+      font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted);
+    }
+    .badge-dot { width:8px; height:8px; border-radius:50%; background:#50e090; animation:pulse 2s infinite; }
+    .hero h1 {
+      font-family:var(--display); font-size:clamp(3rem,8vw,6.5rem);
+      font-weight:900; line-height:1.05; letter-spacing:-.03em; margin-bottom:28px;
+    }
+    .hero p { font-size:1.1rem; color:var(--fg-muted); max-width:580px; margin-bottom:40px; line-height:1.75; }
+    .btn {
+      display:inline-flex; align-items:center; gap:6px;
+      font-family:var(--display); font-weight:700; text-transform:uppercase;
+      letter-spacing:.08em; cursor:pointer; text-decoration:none; transition:all .2s; border:none;
+    }
+    .btn-primary { background:var(--primary); color:#0a0a0c; padding:16px 36px; font-size:1rem; }
+    .btn-primary:hover { filter:brightness(1.1); transform:translateY(-2px); }
+    .btn-outline { background:transparent; border:1px solid var(--border); color:var(--fg); padding:16px 36px; font-size:1rem; }
+    .btn-outline:hover { border-color:var(--primary); color:var(--primary); transform:translateY(-2px); }
+
+    /* ── TICKER ── */
+    .ticker { border-bottom:1px solid var(--border); background:var(--bg-card); padding:13px 0; overflow:hidden; white-space:nowrap; }
+    .ticker-track {
+      display:inline-flex; gap:48px; width:max-content;
+      animation:ticker 20s linear infinite;
+      font-family:var(--mono); font-size:.8rem; letter-spacing:.12em;
+      color:var(--primary); font-weight:700;
+    }
+    .ticker-item { display:inline-flex; align-items:center; gap:10px; }
+    .ticker-icon { color:hsl(26,85%,62%); font-size:.95rem; }
+
+    /* ── QUOTES ── */
+    .quotes { padding:88px 0; background:var(--bg); }
+    .quotes-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+    @media(max-width:900px){ .quotes-grid{grid-template-columns:1fr;} }
+    .quote-card {
+      border:1px solid var(--primary-dim); background:rgba(17,17,22,.7);
+      padding:32px; display:flex; flex-direction:column;
+    }
+    .q-icon { font-size:2.2rem; line-height:1; color:rgba(240,160,80,.3); margin-bottom:16px; }
+    .q-text { font-family:var(--display); font-size:1.1rem; font-weight:700; line-height:1.45; flex:1;
+      background:linear-gradient(90deg,#f0a050,#e8c040,#f0a050);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .q-footer { margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,.07); }
+    .q-line { width:32px; height:2px; background:var(--primary); margin-bottom:10px; }
+    .q-author { font-family:var(--mono); font-size:.68rem; letter-spacing:.06em; color:var(--fg-muted); }
+
+    /* ── AUDIENCE ── */
+    .audience { padding:96px 0; border-top:1px solid var(--border); }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; }
+    @media(max-width:800px){ .two-col{grid-template-columns:1fr; gap:40px;} }
+    .section-sup { font-family:var(--mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--primary); margin-bottom:14px; }
+    .section-h { font-family:var(--display); font-size:clamp(2rem,4vw,3rem); font-weight:700; line-height:1.1; margin-bottom:20px; }
+    .section-p { color:var(--fg-muted); font-size:1rem; line-height:1.75; margin-bottom:32px; }
+    .aud-items { display:flex; flex-direction:column; gap:14px; }
+    .aud-item { display:flex; gap:14px; padding:16px; border:1px solid var(--border); background:rgba(255,255,255,.02); transition:background .2s; }
+    .aud-item:hover { background:rgba(255,255,255,.04); }
+    .aud-icon { font-size:1.3rem; color:var(--primary); flex-shrink:0; margin-top:2px; }
+    .aud-item h3 { font-family:var(--display); font-weight:700; font-size:.95rem; margin-bottom:3px; }
+    .aud-item p { color:var(--fg-muted); font-size:.85rem; }
+    .aud-panel { border:1px solid var(--border); background:rgba(17,17,22,.6); padding:40px; position:relative; overflow:hidden; }
+    .aud-panel::before { content:''; position:absolute; top:0; right:0; width:120px; height:120px; background:rgba(240,160,80,.05); }
+    .aud-crown { font-size:2.5rem; color:var(--primary); margin-bottom:20px; }
+    .aud-quote { font-family:var(--display); font-size:1.6rem; font-weight:700; line-height:1.3; margin-bottom:20px; }
+    .aud-sub { color:var(--fg-muted); font-size:.95rem; line-height:1.7; margin-bottom:28px; }
+    .aud-stats { display:flex; gap:28px; padding-top:24px; border-top:1px solid var(--border); flex-wrap:wrap; }
+    .stat-num { font-family:var(--display); font-size:1.5rem; font-weight:900; color:var(--primary); }
+    .stat-lbl { font-family:var(--mono); font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); }
+
+    /* ── COURSES ── */
+    .courses { padding:96px 0; }
+    .sec-head { text-align:center; margin-bottom:60px; }
+    .sec-head h2 { font-family:var(--display); font-size:clamp(2rem,4vw,3rem); font-weight:700; margin-bottom:12px; }
+    .sec-head p { color:var(--fg-muted); }
+    .courses-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; max-width:1080px; margin:0 auto; }
+    @media(max-width:900px){ .courses-grid{grid-template-columns:1fr;} }
+    .course { border:1px solid var(--border); background:rgba(17,17,22,.5); padding:32px; display:flex; flex-direction:column; position:relative; transition:transform .25s; }
+    .course:hover { transform:translateY(-6px); }
+    .course.popular { border-color:var(--primary); background:rgba(17,17,22,.85); }
+    .pop-badge { position:absolute; top:0; right:0; background:var(--primary); color:#0a0a0c;
+      font-family:var(--mono); font-size:.62rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:4px 10px; }
+    .course-name { font-family:var(--display); font-size:1.4rem; font-weight:700; margin-bottom:8px; }
+    .course-desc { color:var(--fg-muted); font-size:.85rem; min-height:40px; margin-bottom:24px; }
+    .course-price { font-family:var(--display); font-size:2.4rem; font-weight:900; margin-bottom:4px; }
+    .course-note { font-family:var(--mono); font-size:.68rem; color:var(--fg-muted); margin-bottom:24px; padding-bottom:24px; border-bottom:1px solid var(--border); }
+    .course-feats { list-style:none; flex:1; display:flex; flex-direction:column; gap:13px; margin-bottom:28px; }
+    .course-feats li { display:flex; gap:10px; font-size:.875rem; align-items:flex-start; }
+    .check { color:var(--primary); flex-shrink:0; margin-top:2px; font-size:1rem; }
+    .course-btn { display:block; text-align:center; padding:14px; font-family:var(--display); font-weight:700; text-transform:uppercase; letter-spacing:.08em; font-size:.85rem; text-decoration:none; transition:all .2s; cursor:pointer; border:none; }
+    .course-btn.solid { background:var(--primary); color:#0a0a0c; }
+    .course-btn.solid:hover { filter:brightness(1.1); }
+    .course-btn.outline { background:transparent; border:1px solid var(--border); color:var(--fg); }
+    .course-btn.outline:hover { border-color:var(--primary); color:var(--primary); }
+
+    /* ── TESTIMONIALS ── */
+    .reviews { padding:96px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:var(--bg-card); }
+    .reviews-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; max-width:1080px; margin:0 auto; }
+    @media(max-width:900px){ .reviews-grid{grid-template-columns:1fr;} }
+    .review { border:1px solid var(--border); background:var(--bg); padding:32px; display:flex; flex-direction:column; }
+    .stars { color:var(--primary); letter-spacing:2px; margin-bottom:20px; font-size:.9rem; }
+    .review-text { color:var(--fg-muted); font-style:italic; flex:1; margin-bottom:24px; line-height:1.75; }
+    .review-divider { border:none; border-top:1px solid var(--border); margin-bottom:14px; }
+    .review-name { font-family:var(--display); font-weight:700; }
+    .review-sub { font-family:var(--mono); font-size:.68rem; color:var(--fg-muted); }
+
+    /* ── FAQ ── */
+    .faq { padding:96px 0; }
+    .faq-list { max-width:800px; margin:0 auto; display:flex; flex-direction:column; gap:10px; }
+    .faq-item { border:1px solid var(--border); background:rgba(17,17,22,.4); overflow:hidden; }
+    .faq-q {
+      width:100%; background:none; border:none; color:var(--fg);
+      padding:20px 24px; display:flex; align-items:center; justify-content:space-between;
+      cursor:pointer; text-align:left; font-family:var(--display); font-weight:700; font-size:1rem;
+      gap:16px; transition:background .2s;
+    }
+    .faq-q:hover { background:rgba(255,255,255,.03); }
+    .faq-icon { font-size:1.4rem; color:var(--fg-muted); flex-shrink:0; transition:transform .3s,color .3s; line-height:1; }
+    .faq-item.open .faq-icon { transform:rotate(45deg); color:var(--primary); }
+    .faq-a { max-height:0; overflow:hidden; transition:max-height .4s ease; }
+    .faq-item.open .faq-a { max-height:260px; }
+    .faq-a p { padding:0 24px 20px; color:var(--fg-muted); line-height:1.75; }
+    .faq-cta { max-width:800px; margin:56px auto 0; border:1px solid var(--primary-dim); background:rgba(17,17,22,.6); padding:48px; text-align:center; }
+    .faq-cta h3 { font-family:var(--display); font-size:1.6rem; font-weight:700; margin-bottom:12px; }
+    .faq-cta p { color:var(--fg-muted); margin-bottom:28px; }
+
+    /* ── FOOTER ── */
+    footer { border-top:1px solid var(--border); background:var(--bg-card); padding:48px 0; }
+    .footer-top { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:24px; margin-bottom:32px; }
+    .footer-logo { display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--fg); font-family:var(--display); font-weight:700; font-size:1.1rem; }
+    .footer-links { display:flex; gap:24px; }
+    .footer-links a { color:var(--fg-muted); text-decoration:none; font-size:.875rem; transition:color .2s; }
+    .footer-links a:hover { color:var(--fg); }
+    .footer-bottom { border-top:1px solid var(--border); padding-top:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+    .footer-copy { font-family:var(--mono); font-size:.68rem; color:var(--fg-muted); }
+    .footer-brands { display:flex; gap:16px; }
+    .footer-brands span { font-family:var(--display); font-weight:700; font-size:.8rem; color:var(--primary); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <a href="#" class="logo"><span class="logo-crown">♛</span> BBC.</a>
+    <ul class="nav-links">
+      <li><a href="#about">О проекте</a></li>
+      <li><a href="#courses">Программы</a></li>
+      <li><a href="#reviews">Отзывы</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    
+    <h1>МЫ ДЕЛАЕМ ДЕНЬГИ<br>И НЕ <span class="grad">СТЕСНЯЕМСЯ</span> ЭТОГО</h1>
+    <p>Bitcoin Business Club — это не курс. Это сообщество последователей. Мы пришли, чтобы забрать своё по праву. Каждый день. Без извинений.</p>
+    <a href="#courses" class="btn btn-primary">Выбрать программу &rsaquo;</a>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-track">
+    <span class="ticker-item"><span class="ticker-icon">₿</span> BBC</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> BITCOIN BUSINESS CLUB</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> УСПЕХ</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> TheBigMoneySociety</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> BBC</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> УСПЕХ</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> BITCOIN BUSINESS CLUB</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> Биткоин</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> TheBigMoneySociety</span>
+    <!-- duplicate for seamless loop -->
+    <span class="ticker-item"><span class="ticker-icon">₿</span> BBC</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> УСПЕХ</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> BITCOIN BUSINESS CLUB</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> TheBigMoneySociety</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> BBC</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> УСПЕХ</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> BITCOIN BUSINESS CLUB</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> TheBigMoneySociety</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> Биткоин</span>
+    <span class="ticker-item"><span class="ticker-icon">₿</span> BBC</span>
+  </div>
+</div>
+
+<!-- QUOTES -->
+<section class="quotes">
+  <div class="container">
+    <div class="quotes-grid">
+      <div class="quote-card reveal">
+        <div class="q-icon">"</div>
+        <p class="q-text">Для тех, кто делает, что говорит и говорит, что делает.</p>
+        <div class="q-footer"><div class="q-line"></div><div class="q-author">CEO of "BBC" Павел Д.</div></div>
+      </div>
+      <div class="quote-card reveal d1">
+        <div class="q-icon">"</div>
+        <p class="q-text">Каждый день я работаю на свой успех, чтобы потом успех работал на меня.</p>
+        <div class="q-footer"><div class="q-line"></div><div class="q-author">CEO of "BBC" Павел Д.</div></div>
+      </div>
+      <div class="quote-card reveal d2">
+        <div class="q-icon">"</div>
+        <p class="q-text">Я создал этот клуб, чтобы показать, что даже простой человек достоин большего. Не нужно этого стесняться.</p>
+        <div class="q-footer"><div class="q-line"></div><div class="q-author">CEO of "BBC" Павел Д.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AUDIENCE -->
+<section class="audience" id="about">
+  <div class="container">
+    <div class="two-col">
+      <div class="reveal">
+        <div class="section-sup">О проекте</div>
+        <h2 class="section-h">ДЛЯ КОГО ЭТОТ <span class="primary">ПРОЕКТ</span></h2>
+        <p class="section-p">Рынок не прощает слабости. 99% теряют деньги из-за отсутствия системы и понимания. Проект создан для тех, кто устал от матрицы и готов принять философию BBC.</p>
+        <div class="aud-items">
+          <div class="aud-item reveal d1">
+            <div class="aud-icon">⚠</div>
+            <div>
+              <h3>Новички с нулевым опытом</h3>
+              <p>Дадим понимание базы охоты за умными деньгами.</p>
+            </div>
+          </div>
+          <div class="aud-item reveal d2">
+            <div class="aud-icon">◎</div>
+            <div>
+              <h3>Трейдеры в просадке</h3>
+              <p>Поможем найти ошибки в подходе и системно выйти из минуса.</p>
+            </div>
+          </div>
+          <div class="aud-item reveal d3">
+            <div class="aud-icon">↗</div>
+            <div>
+              <h3>Искатели стабильности</h3>
+              <p>25% за сделку — это наша реальность.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="aud-panel reveal d1">
+        <div class="aud-crown">♛</div>
+        <h3 class="aud-quote">Рабочие стратегии, трезвый взгляд.</h3>
+        <p class="aud-sub">BBC — это живая экосистема, где каждый участник имеет доступ к реальным стратегиям, сигналам и мышлению человека, который делает это почти каждый день.</p>
+        <div class="aud-stats">
+          <div><div class="stat-num">70%+</div><div class="stat-lbl">Winrate</div></div>
+          <div><div class="stat-num">ЖИВАЯ</div><div class="stat-lbl">Мотивация</div></div>
+          <div><div class="stat-num">BBC</div><div class="stat-lbl">Сообщество</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COURSES -->
+<section class="courses" id="courses">
+  <div class="container">
+    <div class="sec-head reveal">
+      <h2>ВЫБЕРИ СВОЙ <span class="primary">УРОВЕНЬ</span></h2>
+      <p>Три ступени погружения. Выбирай под свои цели и амбиции.</p>
+    </div>
+    <div class="courses-grid">
+
+      <div class="course reveal">
+        <div class="course-name">БАЗА</div>
+        <p class="course-desc">Для тех, кто делает первые шаги и не хочет слить депозит на ошибках новичка.</p>
+        <div class="course-price">1 555₽</div>
+        <div class="course-note">Единоразовый платеж.</div>
+        <ul class="course-feats">
+          <li><span class="check">✓</span> Основы рынка</li>
+          <li><span class="check">✓</span> Риск-менеджмент</li>
+          <li><span class="check">✓</span> Базовые паттерны</li>
+          <li><span class="check">✓</span> Доступ к открытому чату BBC</li>
+        </ul>
+        <a href="https://t.me/BitcoinBusinessClub" target="_blank" rel="noopener" class="course-btn outline">Выбрать этот тариф</a>
+      </div>
+
+      <div class="course popular reveal d1">
+        <div class="pop-badge">Популярный выбор</div>
+        <div class="course-name">СИСТЕМА</div>
+        <p class="course-desc">Готовая торговая стратегия, по которой торгую я — со всеми деталями.</p>
+        <div class="course-price">6 700₽</div>
+        <div class="course-note">Единоразовый платеж.</div>
+        <ul class="course-feats">
+          <li><span class="check">✓</span> Все материалы БАЗЫ</li>
+          <li><span class="check">✓</span> Полная система BBC</li>
+          <li><span class="check">✓</span> Продвинутый риск-менеджмент</li>
+          <li><span class="check">✓</span> Доступ к закрытому каналу</li>
+          <li><span class="check">✓</span> Разбор домашних заданий</li>
+        </ul>
+        <a href="https://t.me/BitcoinBusinessClub" target="_blank" rel="noopener" class="course-btn solid">Выбрать этот тариф</a>
+      </div>
+
+      <div class="course reveal d2">
+        <div class="course-name">МЕНТОРСТВО</div>
+        <p class="course-desc">Личная работа до результата. Превращаем крипту в твой основной источник дохода.</p>
+        <div class="course-price">52 000₽</div>
+        <div class="course-note">Единоразовый платеж.</div>
+        <ul class="course-feats">
+          <li><span class="check">✓</span> Все материалы СИСТЕМЫ</li>
+          <li><span class="check">✓</span> Созвоны каждую неделю</li>
+          <li><span class="check">✓</span> Разбор каждой сделки</li>
+          <li><span class="check">✓</span> Торговый бот BBC</li>
+          <li><span class="check">✓</span> VIP-канал BBC</li>
+          <li><span class="check">✓</span> Личностная оценка качеств</li>
+          <li><span class="check">✓</span> Психологический портрет трейдера</li>
+        </ul>
+        <a href="https://t.me/BitcoinBusinessClub" target="_blank" rel="noopener" class="course-btn outline">Выбрать этот тариф</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="reviews" id="reviews">
+  <div class="container">
+    <div class="sec-head reveal">
+      <h2>РЕЗУЛЬТАТЫ <span class="primary">УЧАСТНИКОВ</span></h2>
+      <p>Реальные отзывы. Без фильтра.</p>
+    </div>
+    <div class="reviews-grid">
+      <div class="review reveal">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"Пока все работают, мы просто делаем иксы сидя дома. Благодаря торговому боту я поднял бабла и нашел вторую половинку. Саша люблю тебя. ❤️"</p>
+        <hr class="review-divider"/>
+        <div class="review-name">Илья</div>
+        <div class="review-sub">Участник BBC</div>
+      </div>
+      <div class="review reveal d1">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"Благодаря BBC я заработал на новенький компьютер за пару месяцев не выходя из дома."</p>
+        <hr class="review-divider"/>
+        <div class="review-name">Игорь</div>
+        <div class="review-sub">Участник BBC</div>
+      </div>
+      <div class="review reveal d2">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"Хомяки всегда будут, главное не стать одним из них. Теперь я зарабатываю 20 000 рублей в день и все благодаря BBC."</p>
+        <hr class="review-divider"/>
+        <div class="review-name">Дмитрий</div>
+        <div class="review-sub">Участник BBC</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="container">
+    <div class="sec-head reveal">
+      <h2>ЧАСТЫЕ ВОПРОСЫ</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Нужен ли большой капитал для старта?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><p>Нет. Достаточно начать с 10$. Мой путь начинался с 5$ и уже через несколько месяцев он вырос до 1000$+. Главное — система и дисциплина, а не размер стартового депозита.</p></div>
+      </div>
+      <div class="faq-item reveal d1">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Сколько времени нужно уделять?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><p>Стабильно — одна сделка в день. Минимально — одна сделка раз в два дня. Трейдинг должен давать свободу, а не отбирать её.</p></div>
+      </div>
+      <div class="faq-item reveal d2">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Я совсем новичок. Мне подойдет?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><p>Да. Тариф БАЗА создан специально для тебя. Начнем с регистрации на бирже и основы основ работы умных денег.</p></div>
+      </div>
+      <div class="faq-item reveal d3">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Есть ли гарантия заработка?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><p>Я гарантирую заработок на моей системной торговой стратегии по рабочей системе.</p></div>
+      </div>
+    </div>
+    <div class="faq-cta reveal">
+      <h3>Готов начать?</h3>
+      <p>Присоединяйся к Bitcoin Business Club и начни делать деньги системно.</p>
+      <a href="https://t.me/BitcoinBusinessClub" target="_blank" rel="noopener" class="btn btn-primary">Вступить в клуб &rsaquo;</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-top">
+      <a href="#" class="footer-logo"><span class="primary">♛</span> Bitcoin Business Club</a>
+      <div class="footer-links">
+        <a href="https://t.me/BitcoinBusinessClub" target="_blank" rel="noopener">Telegram</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© <span id="yr"></span> Bitcoin Business Club. Все права защищены.</span>
+      <div class="footer-brands">
+        <span>TheBigMoneySociety©</span>
+        <span>ТемныеДеньги©</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const open = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+    if (!open) item.classList.add('open');
+  }
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('on'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
